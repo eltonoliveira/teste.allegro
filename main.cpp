@@ -30,15 +30,28 @@ int main() {
 	BITMAP* boneco   = load_bitmap("imagens/boneco.bmp", NULL);
 	BITMAP* sky      = load_bitmap("imagens/ceu.bmp" , NULL);
 	BITMAP* montanha = load_bitmap("imagens/montanha.bmp" , NULL);
+	BITMAP* cursor   = load_bitmap("imagens/cursor.bmp", NULL);
 	
-	 
+	//VARIAVEIS
+	int estado_anterior_SPACE;
+	//SONS
+	SAMPLE* efeito 	= load_sample("sons/efeito.wav");
+	MIDI* musica 	= load_midi("sons/musica.mid");
+	
+	play_midi(musica, TRUE);
+
 	while ( ! exit_program) 
 	{
 	 	  //INPUT
 	 	  keyboard_input();
 	 	  
+		  estado_anterior_SPACE = key[KEY_SPACE];
+	 	  poll_keyboard();
+	 	  
 		  if(key[KEY_ESC]){ fechar_programa(); }	
 
+		  if(estado_anterior_SPACE == 0 && key[KEY_SPACE] != 0){ play_sample(efeito, 255, 128, 1000, FALSE); }
+		  
 		  if(apertou(KEY_UP))
 			   sel_i--;
 		  else if(apertou(KEY_DOWN))
@@ -62,42 +75,25 @@ int main() {
 	 	  	   sel_j = 7;
 	 	  
 	 	  //DRAW
-	 	  //screen é um ponteiro para o bitmap da imagem
-    	  //circlefill(buffer, coordenada_x, 110, 50, makecol(255, 0, 0));
-    	  //draw_sprite(screen, buffer, 0, 0);
-    	  
-    	  /**
-    	  set_burn_blender(255, 255, 255, 128);
-    	  
-    	  draw_sprite(buffer, sky, 0, 0);
-    	  draw_sprite(buffer, montanha, 0, 0);
-		  draw_sprite(buffer, boneco, 200, 38);    	
-		  rotate_sprite(buffer, boneco, 200, 380, ftofix(teta));  
-		  */
+		  rectfill(buffer, 100, 100, 200, 200, makecol(0, 0, 255)); 
 		  
-		  for(i = 0; i < 10; i++)
+		  if(mouse_x > 100 && mouse_x < 200 &&
+			 mouse_y > 100 && mouse_y < 200
+		  )
 		  {
-		   	   for(j = 0; j < 8; j++)
-		   	   {
-			   		rect(buffer, 
-					   50 + j * 40, 
- 				   	   50 + i * 40,
-					   50 + j * 40 + 40,
-					   50 + i * 40 + 40,
-					   makecol(255, 255, 255) 
-			       );
-   	           } 
-	      }
-    	  
-    	  rectfill(
-		  		   buffer, 
-				   50 + sel_j * 40, 
-				   50 + sel_i * 40, 
-				   50 + sel_j * 40 + 40,
-				   50 + sel_i * 40 + 40,
-				   makecol(255, 0, 0)
-	      );
-    	  
+		   	 rectfill(buffer, 100, 100, 200, 200, makecol(255, 0, 0)); 
+		   	 
+		   	 if(mouse_b == 1)
+		   	 {
+ 			    //mouse_b = 0;
+ 			    textout_ex(buffer, font, "Pressionou botao esquerdo", 130, 350, makecol(255, 255, 255), -1);  		
+			 }
+		  }
+		  
+		  textout_ex(buffer, font, "Jogar", 130, 150, makecol(255, 255, 255), -1);  
+		  
+		   	  
+    	  draw_sprite(buffer, cursor, mouse_x - 6, mouse_y);
     	  draw_sprite(screen, buffer, 0, 0);
 		  clear(buffer);
     }
@@ -107,6 +103,10 @@ int main() {
 	destroy_bitmap(boneco);
 	destroy_bitmap(sky);
 	destroy_bitmap(montanha);
+	destroy_bitmap(cursor);
+	destroy_sample(efeito);
+	destroy_midi(musica);
+	stop_midi();
 	
 	deinit();
 	return 0;
@@ -129,6 +129,8 @@ void init() {
 	install_keyboard();
 	install_mouse();
 	/* add other initializations here */
+	install_sound(DIGI_AUTODETECT, MIDI_AUTODETECT, NULL);
+	
 	
 	set_window_title("Campo minado");
 }
